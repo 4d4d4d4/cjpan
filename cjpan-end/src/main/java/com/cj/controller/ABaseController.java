@@ -2,6 +2,7 @@ package com.cj.controller;
 
 import com.cj.entity.config.AppConfig;
 import com.cj.entity.constants.Constants;
+import com.cj.entity.dto.SessionShareDto;
 import com.cj.entity.dto.SessionWebUserDto;
 import com.cj.entity.enums.ResponseCodeEnum;
 import com.cj.entity.vo.PaginationResultVO;
@@ -41,6 +42,17 @@ public class ABaseController {
      */
     protected SessionWebUserDto getUserinfoFromSession(HttpSession session){
        return (SessionWebUserDto) session.getAttribute(Constants.SESSION_KEY);
+    }
+
+    /**
+     * 获取当前session中的分享信息
+     * @param session
+     * @return
+     */
+    protected SessionShareDto getShareInfoFromSession(HttpSession session, String shareId, String userId){
+        System.out.println(Constants.SESSION_SHARE_KEY + shareId + getUserinfoFromSession(session).getUserId());
+        return (SessionShareDto) session.getAttribute(Constants.SESSION_SHARE_KEY + shareId + "_" + userId);
+
     }
 
     /**

@@ -1,6 +1,7 @@
 package com.cj.mappers;
 
 import org.apache.ibatis.annotations.Param;
+import org.apache.ibatis.annotations.Select;
 
 /**
  * 分享信息 数据库操作接口
@@ -28,4 +29,7 @@ public interface FileShareMapper<T, P> extends BaseMapper<T, P> {
     Integer deleteFileShareBatch(@Param("shareIdArray") String[] shareIdArray, @Param("userId") String userId);
 
     void updateShareShowCount(@Param("shareId") String shareId);
+
+    @Select("select * from file_share where user_id = #{userId} and share_id = #{shareId}")
+    T selectByUserIdAndShareId(@Param("userId") String userId, @Param("shareId") String shareId);
 }

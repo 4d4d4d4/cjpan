@@ -17,6 +17,7 @@ import com.cj.exception.BusinessException;
 import com.cj.mappers.FileInfoMapper;
 import com.cj.mappers.UserInfoMapper;
 import com.cj.service.FileInfoService;
+import com.cj.service.UserInfoService;
 import com.cj.utils.DateUtil;
 import com.cj.utils.ProcessUtils;
 import com.cj.utils.ScaleFilter;
@@ -34,6 +35,7 @@ import org.springframework.transaction.support.TransactionSynchronizationManager
 import org.springframework.web.multipart.MultipartFile;
 
 import javax.annotation.Resource;
+import javax.servlet.http.HttpSession;
 import java.io.File;
 import java.io.IOException;
 import java.io.RandomAccessFile;
@@ -213,13 +215,13 @@ public class FileInfoServiceImpl implements FileInfoService {
             // 暂存目录
             String tempFolderName = appConfig.getProjectFolder() + Constants.FILE_FOLDER_TEMP;
             String currentUserFolderName = user.getUserId() + fileId;
-            tempFileFolder = new File(tempFolderName + currentUserFolderName);
+            tempFileFolder = new File(tempFolderName + currentUserFolderName + "/" + fileName);
 
             if (!tempFileFolder.exists()) {
                 tempFileFolder.mkdirs();
             }
             // 存放切片
-            File newFile = new File(tempFileFolder.getPath() + "/" + chunkIndex);
+            File newFile = new File(tempFileFolder + "/" + chunkIndex);
             file.transferTo(newFile);
             if (chunkIndex < chunks - 1) {
                 resultDto.setStatus(UploadStatusEnums.UPLOADING.getCode());
@@ -382,7 +384,7 @@ public class FileInfoServiceImpl implements FileInfoService {
     }
 
     @Override
-    public void reNameByUserIdAndFileId(String userId, String fileId, String newFileName) {
+    public FileInfo reNameByUserIdAndFileId(String userId, String fileId, String newFileName) {
         FileInfo fileInfo = fileInfoMapper.selectByFileIdAndUserId(fileId, userId);
         if (!fileInfo.getStatus().equals(FileStatusEnums.USING.getStatus()) || !fileInfo.getDelFlag().equals(FileDelFlagEnums.USING.getFlag())) {
             throw new BusinessException("文件状态异常...");
@@ -403,6 +405,9 @@ public class FileInfoServiceImpl implements FileInfoService {
         fileInfo.setUserId(userId);
         fileInfo.setLastUpdateTime(new Date());
         fileInfoMapper.updateByFileIdAndUserId(fileInfo, fileId, userId);
+        fileInfo = fileInfoMapper.selectByFileIdAndUserId(fileId, userId);
+
+        return fileInfo;
     }
 
     @Override
@@ -633,7 +638,9 @@ public class FileInfoServiceImpl implements FileInfoService {
             targetFilePath = targetFolder.getPath() + "/" + realFileName;
 
             // 合并文件
-            union(fileFolder.getPath(), targetFilePath, realFileName, true);
+            union(fileFolder.getPath(), targetFilePath, fileInfo.getFileName(), false);
+
+            System.out.println(fileInfo.getFileName());
 
             // 视频文件切割
             FileTypeEnums fileTypeBySuffix = FileTypeEnums.getFileTypeBySuffix(fileSuffix);
@@ -687,7 +694,7 @@ public class FileInfoServiceImpl implements FileInfoService {
             byte[] bytes = new byte[1024 * 10];
             for (int i = 0; i < fileList.length; i++) {
                 int len = -1;
-                File file = new File(dirPath + "/" + i);
+                File file = new File(dirPath + "/" + fileName +  "/" + i);
                 RandomAccessFile readFile = null;
                 try {
                     readFile = new RandomAccessFile(file, "r");
@@ -695,14 +702,15 @@ public class FileInfoServiceImpl implements FileInfoService {
                         writeFile.write(bytes, 0, len);
                     }
                 } catch (Exception e) {
-                    logger.error("合并文件失败... 421");
+                    e.printStackTrace();
+                    logger.error("合并文件失败... {}", e.getMessage());
                     throw new BusinessException("合并文件失败");
                 } finally {
                     readFile.close();
                 }
             }
         } catch (Exception e) {
-            logger.error("合并文件失败.... 427");
+            logger.error("合并文件失败.... :{}", e.getMessage());
             throw new BusinessException("合并文件失败");
         } finally {
             if (null != writeFile) {
@@ -791,4 +799,20 @@ public class FileInfoServiceImpl implements FileInfoService {
         redisComponent.saveUserSpaceUse(userId, userSpaceDto);
 
     }
+
+    @Override
+    public List<FileInfo> findAllByUserId(String userId) {
+        FileInfoQuery fileInfoQuery = new FileInfoQuery();
+        fileInfoQuery.setUserId(userId);
+        return fileInfoMapper.selectList(fileInfoQuery);
+    }
+
+    @Override
+    public List<FileInfo> getFileInfoByUserIdAndPid(String userId, String filePid) {
+        FileInfoQuery fileInfoQuery = new FileInfoQuery();
+        fileInfoQuery.setUserId(userId);
+        fileInfoQuery.setFilePid(filePid);
+        return fileInfoMapper.selectList(fileInfoQuery);
+    }
+
 }

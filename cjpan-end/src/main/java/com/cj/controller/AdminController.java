@@ -19,7 +19,7 @@ import org.springframework.web.bind.annotation.RestController;
 import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-
+// getUseSpace
 @RestController("adminController")
 @RequestMapping("/admin")
 public class AdminController extends CommonFileController {
@@ -72,7 +72,7 @@ public class AdminController extends CommonFileController {
 
     @RequestMapping("/updateUserSpace")
     @GlobalInterceptor(checkParam = true, checkAdmin = true)
-    public ResponseVO updateUserSpace(@VerifyParam(require = true) String userId, @VerifyParam(require = true) Integer changeSpace) {
+    public ResponseVO updateUserSpace(@VerifyParam(require = true) String userId, @VerifyParam(require = true) Long changeSpace) {
         userInfoService.changeUserSpace(userId, changeSpace);
         return getSuccessResponseVO(null);
     }

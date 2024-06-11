@@ -169,7 +169,7 @@
         SELECT
         <include refid="base_column_list"/>
         <if test="query.queryNickName!=null and query.queryNickName">
-            ,(select nick_name from user_info u, file_info f where u.user_id = f.user_id) nickName
+            ,(select u.nick_name from user_info u where u.user_id = f.user_id) nickName
         </if>
         FROM file_info f
         <include refid="query_condition"/>
@@ -731,7 +731,10 @@
     </select>
 
     <select id="selectUserSpaceByUserId" resultType="java.lang.Long">
-        select IFNULL(sum(file_size), 0) from file_info where user_id = #{userId}
+        select IFNULL(sum(file_size), 0)
+        from file_info
+        where user_id = #{userId}
+          and del_flag = 2
     </select>
     <select id="selectAllRecycleCount" resultType="java.lang.Integer">
         select count(*)

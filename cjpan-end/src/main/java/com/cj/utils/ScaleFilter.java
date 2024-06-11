@@ -12,7 +12,7 @@ import java.math.BigDecimal;
 
 /**
  * @Classname ScaleFilter
- * @Description 什么也没有写哦~
+ * @Description ffmpeg工具类
  * @Date 2024/3/16 14:05
  * @Created by 憧憬
  */

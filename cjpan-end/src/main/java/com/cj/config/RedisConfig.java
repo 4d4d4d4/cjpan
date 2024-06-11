@@ -19,8 +19,10 @@ public class RedisConfig {
     @Bean
     public RedisTemplate redisTemplate(RedisConnectionFactory redisConnectionFactory){
         RedisTemplate redisTemplate = new RedisTemplate();
+
         redisTemplate.setConnectionFactory(redisConnectionFactory);
         RedisSerializer stringSerializer = new StringRedisSerializer();//序列化为String
+
 //        GenericJackson2JsonRedisSerializer serializer = new GenericJackson2JsonRedisSerializer();
         //设置redis key的序列化器
         redisTemplate.setKeySerializer(stringSerializer);

@@ -1,6 +1,7 @@
 package com.cj.mappers;
 
 import org.apache.ibatis.annotations.Param;
+import org.apache.ibatis.annotations.Update;
 
 /**
  * 用户信息 数据库操作接口
@@ -80,4 +81,10 @@ public interface UserInfoMapper<T, P> extends BaseMapper<T, P> {
 
 
     Integer updateUserSpace(@Param("userId") String userId, @Param("useSpace") Long useSpace, @Param("totalSpace") Long totalSpace);
+
+    @Update("update user_info set status = #{status} where user_id = #{userId}")
+    void updateUserStatus(@Param("userId") String userId, @Param("status") Integer status);
+
+    @Update("update user_info set total_space = #{changeSpace} where user_id = #{userId}")
+    void changeUserSpace(String userId, Long changeSpace);
 }

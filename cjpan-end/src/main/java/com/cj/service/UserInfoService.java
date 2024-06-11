@@ -123,9 +123,11 @@ public interface UserInfoService {
     void updateUserStatus(String userId, Integer status);
 
 
-    void changeUserSpace(String userId, Integer changeSpace);
+    void changeUserSpace(String userId, Long changeSpace);
 
     SessionWebUserDto login(String email, String password);
 
-    SessionWebUserDto qqLogin(String code);
+//    SessionWebUserDto qqLogin(String code);
+
+    void updateUserSpace(String userId, long total);
 }

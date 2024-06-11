@@ -8,7 +8,7 @@ import java.util.regex.Pattern;
 
 /**
  * @Classname VerifyUtils
- * @Description 什么也没有写哦~
+ * @Description 参数校验工具类 格式校验
  * @Date 2024/3/5 10:33
  * @Created by 憧憬
  */

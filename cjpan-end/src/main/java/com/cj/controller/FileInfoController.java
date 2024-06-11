@@ -2,6 +2,8 @@ package com.cj.controller;
 
 import com.cj.annotation.GlobalInterceptor;
 import com.cj.annotation.VerifyParam;
+import com.cj.entity.config.AppConfig;
+import com.cj.entity.constants.Constants;
 import com.cj.entity.dto.SessionWebUserDto;
 import com.cj.entity.dto.UploadResultDto;
 import com.cj.entity.enums.FileCategoryEnums;
@@ -15,10 +17,8 @@ import com.cj.entity.vo.ResponseVO;
 import com.cj.service.FileInfoService;
 import com.cj.utils.CopyUtils;
 import com.cj.utils.StringTools;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
 import javax.annotation.Resource;
@@ -36,6 +36,8 @@ import java.util.List;
 public class FileInfoController extends CommonFileController {
     @Resource
     private FileInfoService fileInfoService;
+    @Autowired
+    private AppConfig appConfig;
 
     /**
      * 根据条件分页查询
@@ -105,6 +107,13 @@ public class FileInfoController extends CommonFileController {
         super.getImage(response, imageDate, imageName);
     }
 
+    /**
+     * 浏览视频
+     * @param session
+     * @param response
+     * @param fileId
+     * @return
+     */
     @RequestMapping("/ts/getVideoInfo/{fileId}")
     @GlobalInterceptor(checkParam = true)
     public ResponseVO getVideoInfo(HttpSession session,
@@ -160,8 +169,9 @@ public class FileInfoController extends CommonFileController {
                              @VerifyParam(require = true) String fileId,
                              @VerifyParam(require = true) @RequestParam("fileName") String newFileName){
         SessionWebUserDto userinfo = getUserinfoFromSession(session);
-        fileInfoService.reNameByUserIdAndFileId(userinfo.getUserId(), fileId, newFileName);
-        return getSuccessResponseVO(null);
+        FileInfo fileInfo = fileInfoService.reNameByUserIdAndFileId(userinfo.getUserId(), fileId, newFileName);
+
+        return getSuccessResponseVO(fileInfo);
     }
 
     /**
@@ -237,6 +247,19 @@ public class FileInfoController extends CommonFileController {
         SessionWebUserDto user = getUserinfoFromSession(session);
         fileInfoService.deleteFileInfoByFileIdsAndUserId(fileIds, user.getUserId());
         return getSuccessResponseVO(null);
+    }
+
+    /**
+     * 获取文件详情
+     */
+    @PostMapping("/getFile/{fileId}")
+    @GlobalInterceptor
+    public void getFile(HttpSession session, HttpServletResponse response, @VerifyParam(require = true) @PathVariable("fileId") String fileId){
+        SessionWebUserDto userDto = getUserinfoFromSession(session);
+        FileInfo fileInfo = fileInfoService.getFileInfoByFileIdAndUserId(fileId, userDto.getUserId());
+        String projectFolder = appConfig.getProjectFolder();
+        String filePath = projectFolder + Constants.FILE_FOLDER_FILE + fileInfo.getFilePath();
+        super.readFile(response, filePath);
     }
 
 

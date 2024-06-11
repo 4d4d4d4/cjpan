@@ -94,7 +94,7 @@ public class RedisComponent {
 
     /**
      * 获取用户使用的空间
-     *
+     * getUseSpace
      * @param userId
      * @return
      */
@@ -105,6 +105,7 @@ public class RedisComponent {
             Long userspace = fileInfoMapper.selectUserSpaceByUserId(userId);
             spaceDto.setUseSpace(userspace);
             spaceDto.setTotalSpace(getSysSettingsDto().getUserInitUseSpace() * Constants.MB);
+//            System.out.println(spaceDto);
 //            redisUtils.setEx(Constants.REDIS_KEY_USER_SPACE_USE + userId, spaceDto, Constants.REDIS_KEY_EXPIRES_DAY);
             saveUserSpaceUse(userId, spaceDto);
         }

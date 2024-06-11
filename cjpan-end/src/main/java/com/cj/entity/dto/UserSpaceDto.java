@@ -20,6 +20,14 @@ public class UserSpaceDto implements Serializable {
         this.totalSpace = totalSpace;
     }
 
+    @Override
+    public String toString() {
+        return "UserSpaceDto{" +
+                "useSpace=" + useSpace +
+                ", totalSpace=" + totalSpace +
+                '}';
+    }
+
     public Long getUseSpace() {
         return useSpace;
     }

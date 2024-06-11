@@ -3,12 +3,14 @@ package com.cj.service;
 import com.cj.entity.dto.SessionWebUserDto;
 import com.cj.entity.dto.UploadResultDto;
 import com.cj.entity.po.FileInfo;
+import com.cj.entity.po.UserInfo;
 import com.cj.entity.query.FileInfoQuery;
 import com.cj.entity.query.SimplePage;
 import com.cj.entity.vo.PaginationResultVO;
 import org.apache.ibatis.annotations.Param;
 import org.springframework.web.multipart.MultipartFile;
 
+import javax.servlet.http.HttpSession;
 import java.io.IOException;
 import java.util.List;
 
@@ -71,7 +73,7 @@ public interface FileInfoService {
 
     FileInfo newFolder(String filePid, String userId, String folderName);
 
-    void reNameByUserIdAndFileId(String userId, String fileId, String newFileName);
+    FileInfo reNameByUserIdAndFileId(String userId, String fileId, String newFileName);
 
     void changeFileFolder(String fileIds, String filePid, String userId);
 
@@ -86,5 +88,10 @@ public interface FileInfoService {
     void recoverFileBatch(String userId, String fileIds);
 
     void delFileBatch(String userId, String fileIds, Boolean adminOp);
+
+
+    List<FileInfo> findAllByUserId(String userId);
+
+    List<FileInfo> getFileInfoByUserIdAndPid(String userId, String filePid);
 
 }

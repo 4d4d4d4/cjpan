@@ -19,18 +19,18 @@ public class AppConfig {
     private String adminEmails;
     @Value("${project.folder}")
     private String projectFolder;
-    @Value("${qq.app.id}")
-    private String qqAppId;
-    @Value("${qq.app.key}")
-    private String qqAppKey;
-    @Value("${qq.url.authorization}")
-    private String qqUrlAuthorization;
-    @Value("${qq.url.access.token}")
-    private String qqUrlAccessToken;
-    @Value("${qq.url.openid}")
-    private String qqUrlOpenid;
-    @Value("${qq.url.user.info}")
-    private String qqUrlUserInfo;
-    @Value("${qq.url.redirect}")
-    private String qqUrlRedirect;
+//    @Value("${qq.app.id}")
+//    private String qqAppId;
+//    @Value("${qq.app.key}")
+//    private String qqAppKey;
+//    @Value("${qq.url.authorization}")
+//    private String qqUrlAuthorization;
+//    @Value("${qq.url.access.token}")
+//    private String qqUrlAccessToken;
+//    @Value("${qq.url.openid}")
+//    private String qqUrlOpenid;
+//    @Value("${qq.url.user.info}")
+//    private String qqUrlUserInfo;
+//    @Value("${qq.url.redirect}")
+//    private String qqUrlRedirect;
 }
