@@ -274,38 +274,38 @@ public class AccountController extends ABaseController {
 
     }
 
-    /**
-     *
-     * @param session session
-     * @param callbackUrl 登陆成功后的回调地址
-     * @return 用户信息
-     */
-    @RequestMapping("/qqlogin")
-    @GlobalInterceptor(checkParam = true, checkLogin = false)
-    public ResponseVO qqLogin(HttpSession session,
-                             @VerifyParam(require = false) String callbackUrl) throws UnsupportedEncodingException {
-
-        String state = StringTools.getRandomNumber(Constants.LENGTH_30);
-        if(!StringTools.isEmpty(state)){
-            session.setAttribute(state, callbackUrl);
-        }
-        String uri = String.format(appConfig.getQqUrlAuthorization(), appConfig.getQqAppId(), URLEncoder.encode(appConfig.getQqUrlRedirect(),"utf-8"), state);
-
-        return getSuccessResponseVO(uri);
-    }
-
-    @RequestMapping("/qqlogin/callback")
-    @GlobalInterceptor(checkParam = true, checkLogin = false)
-    public ResponseVO qqLoginCallback(HttpSession session,
-                                      @VerifyParam(require = true) String code,
-                                      @VerifyParam(require = true) String state){
-        Map<String,Object> result = new HashMap<>();
-        SessionWebUserDto userDto = new SessionWebUserDto();
-        userDto = userInfoService.qqLogin(code);
-        session.setAttribute(Constants.SESSION_KEY, userDto);
-        result.put("callbackUrl", session.getAttribute(state));
-        result.put("userInfo", userDto);
-        return getSuccessResponseVO(result);
-    }
+//    /**
+//     *
+//     * @param session session
+//     * @param callbackUrl 登陆成功后的回调地址
+//     * @return 用户信息
+//     */
+//    @RequestMapping("/qqlogin")
+//    @GlobalInterceptor(checkParam = true, checkLogin = false)
+//    public ResponseVO qqLogin(HttpSession session,
+//                             @VerifyParam(require = false) String callbackUrl) throws UnsupportedEncodingException {
+//
+//        String state = StringTools.getRandomNumber(Constants.LENGTH_30);
+//        if(!StringTools.isEmpty(state)){
+//            session.setAttribute(state, callbackUrl);
+//        }
+//        String uri = String.format(appConfig.getQqUrlAuthorization(), appConfig.getQqAppId(), URLEncoder.encode(appConfig.getQqUrlRedirect(),"utf-8"), state);
+//
+//        return getSuccessResponseVO(uri);
+//    }
+//
+//    @RequestMapping("/qqlogin/callback")
+//    @GlobalInterceptor(checkParam = true, checkLogin = false)
+//    public ResponseVO qqLoginCallback(HttpSession session,
+//                                      @VerifyParam(require = true) String code,
+//                                      @VerifyParam(require = true) String state){
+//        Map<String,Object> result = new HashMap<>();
+//        SessionWebUserDto userDto = new SessionWebUserDto();
+//        userDto = userInfoService.qqLogin(code);
+//        session.setAttribute(Constants.SESSION_KEY, userDto);
+//        result.put("callbackUrl", session.getAttribute(state));
+//        result.put("userInfo", userDto);
+//        return getSuccessResponseVO(result);
+//    }
 
 }
