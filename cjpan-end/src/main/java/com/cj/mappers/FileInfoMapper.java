@@ -1,6 +1,7 @@
 package com.cj.mappers;
 
 import com.cj.entity.po.FileInfo;
+import org.apache.ibatis.annotations.Delete;
 import org.apache.ibatis.annotations.Param;
 
 import java.util.List;
@@ -49,4 +50,12 @@ public interface FileInfoMapper<T, P> extends BaseMapper<T, P> {
     Long selectUseSpace(@Param("userId") String userId);
 
 
+    // 删除回收站文件
+    void delReycleFileBatch(@Param("ids") List<String> deleteIds, @Param("oldStatus") Integer oldStatus);
+
+    List<T> findAllDelFile(@Param("query") P fileInfoQuery);
+
+    // 从数据中删除文件
+    @Delete("delete from file_info where file_id = #{fileId} and del_flag = #{flag}")
+    void deleteFileById(@Param("fileId") String fileId, @Param("flag") Integer flag);
 }

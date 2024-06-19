@@ -252,7 +252,7 @@ public class FileInfoController extends CommonFileController {
     /**
      * 获取文件详情
      */
-    @PostMapping("/getFile/{fileId}")
+    @RequestMapping("/getFile/{fileId}")
     @GlobalInterceptor
     public void getFile(HttpSession session, HttpServletResponse response, @VerifyParam(require = true) @PathVariable("fileId") String fileId){
         SessionWebUserDto userDto = getUserinfoFromSession(session);

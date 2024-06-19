@@ -10,7 +10,7 @@ import org.springframework.transaction.annotation.EnableTransactionManagement;
 @SpringBootApplication
 // 事务生效
 @EnableTransactionManagement
-// 开启任务调度 定时任务
+// 开启任务调度 定时任务  default_avatar
 @EnableScheduling
 // 异步调用
 @EnableAsync

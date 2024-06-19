@@ -82,9 +82,15 @@ public interface UserInfoMapper<T, P> extends BaseMapper<T, P> {
 
     Integer updateUserSpace(@Param("userId") String userId, @Param("useSpace") Long useSpace, @Param("totalSpace") Long totalSpace);
 
+    // 从原有的基础上修改用户的空间
     @Update("update user_info set status = #{status} where user_id = #{userId}")
     void updateUserStatus(@Param("userId") String userId, @Param("status") Integer status);
 
-    @Update("update user_info set total_space = #{changeSpace} where user_id = #{userId}")
-    void changeUserSpace(String userId, Long changeSpace);
+    // 修改用户总空间
+    @Update("update user_info set total_space = #{changeSpace} where user_id = #{userId} and use_space <= #{changeSpace}")
+    void changeUserTotalSpace(@Param("userId") String userId, @Param("changeSpace") Long changeSpace);
+
+    // 登录时重置用户使用空间
+    @Update("update user_info set use_space = #{useSpace} where user_id = #{userId} and #{useSpace} <= total_space")
+    void ResetUseSpace(@Param("userId") String userId, @Param("useSpace") Long useSpace);
 }

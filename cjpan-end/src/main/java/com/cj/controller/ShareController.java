@@ -14,13 +14,25 @@ import org.springframework.web.bind.annotation.RestController;
 import javax.annotation.Resource;
 import javax.servlet.http.HttpSession;
 
+/**
+ * @Classname ShowShareController
+ * @Description 分享文件接口
+ * @Date 2024/6/5 下午5:32
+ * @Created by 憧憬
+ */
+
 @RestController("shareController")
 @RequestMapping("/share")
 public class ShareController extends ABaseController {
     @Resource
     private FileShareService fileShareService;
 
-
+    /**
+     * 查询所有分享文件列表
+     * @param session session
+     * @param query 查询条件 同文件查询差不多
+     * @return
+     */
     @RequestMapping("/loadShareList")
     @GlobalInterceptor(checkParam = true)
     public ResponseVO loadShareList(HttpSession session, FileShareQuery query) {
@@ -32,6 +44,14 @@ public class ShareController extends ABaseController {
         return getSuccessResponseVO(resultVO);
     }
 
+    /**
+     * 分享某个文件
+     * @param session session
+     * @param fileId 被分享文件的id
+     * @param validType 有效期 0:1天 1:7天 2:30天 3:永久有效
+     * @param code 分享验证码
+     * @return
+     */
     @RequestMapping("/shareFile")
     @GlobalInterceptor(checkParam = true )
     public ResponseVO shareFile(HttpSession session,
@@ -48,6 +68,12 @@ public class ShareController extends ABaseController {
         return getSuccessResponseVO(share);
     }
 
+    /**
+     * 取消分享
+     * @param session session
+     * @param shareIds 被取消分享的文件id
+     * @return
+     */
     @RequestMapping("/cancelShare")
     @GlobalInterceptor(checkParam = true)
     public ResponseVO cancelShare(HttpSession session, @VerifyParam(require = true) String shareIds) {

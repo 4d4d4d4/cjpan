@@ -136,7 +136,7 @@ public class AutoCheckParamAspect {
     private void checkObjectValue(Parameter parameter, Object value) {
         try {
             String paramTypeName = parameter.getParameterizedType().getTypeName(); // 通过参数信息 获取参数对象名称
-            System.out.println("对象类型名称：" + paramTypeName);
+//            System.out.println("对象类型名称：" + paramTypeName);
             // 通过类名称 创建对象实列
             Class<?> aClass = Class.forName(paramTypeName); // 反射对象
             Field[] fields = aClass.getDeclaredFields(); // 获取对象中所有公共字段信息

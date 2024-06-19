@@ -1,48 +1,35 @@
 package com.cj.service.impl;
 
-import com.cj.annotation.GlobalInterceptor;
-import com.cj.annotation.VerifyParam;
 import com.cj.component.RedisComponent;
 import com.cj.entity.config.AppConfig;
 import com.cj.entity.constants.Constants;
-import com.cj.entity.dto.QQInfoDto;
 import com.cj.entity.dto.SessionWebUserDto;
 import com.cj.entity.dto.SysSettingsDto;
 import com.cj.entity.dto.UserSpaceDto;
 import com.cj.entity.enums.PageSize;
 import com.cj.entity.enums.UserStatusEnum;
-import com.cj.entity.enums.VerifyRegexEnum;
 import com.cj.entity.po.FileInfo;
 import com.cj.entity.po.UserInfo;
 import com.cj.entity.query.FileInfoQuery;
 import com.cj.entity.query.SimplePage;
 import com.cj.entity.query.UserInfoQuery;
 import com.cj.entity.vo.PaginationResultVO;
-import com.cj.entity.vo.ResponseVO;
 import com.cj.exception.BusinessException;
 import com.cj.mappers.FileInfoMapper;
 import com.cj.mappers.UserInfoMapper;
 import com.cj.service.EmailCodeService;
 import com.cj.service.UserInfoService;
-import com.cj.utils.JsonUtils;
-import com.cj.utils.OKHttpUtils;
 import com.cj.utils.RedisUtils;
 import com.cj.utils.StringTools;
 import org.apache.commons.lang3.ArrayUtils;
-import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
-import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.transaction.annotation.Transactional;
 
 import javax.annotation.Resource;
-import javax.servlet.http.HttpSession;
-import java.io.UnsupportedEncodingException;
-import java.net.URLEncoder;
 import java.util.Date;
 import java.util.List;
-import java.util.Map;
 import java.util.UUID;
 
 
@@ -287,11 +274,12 @@ public class UserInfoServiceImpl implements UserInfoService {
     @Override
     public void changeUserSpace(String userId, Long changeSpace) {
         changeSpace = changeSpace*1024*1024;
-        userInfoMapper.changeUserSpace(userId, changeSpace);
+        userInfoMapper.changeUserTotalSpace(userId, changeSpace);
 
     }
 
     @Override
+    @Transactional
     public SessionWebUserDto login(String email, String password) {
         UserInfo userInfo = userInfoMapper.selectByEmail(email);
 
@@ -318,10 +306,10 @@ public class UserInfoServiceImpl implements UserInfoService {
         // 用户空间
         UserSpaceDto userSpaceDto = new UserSpaceDto();
         Long userspace = fileInfoMapper.selectUserSpaceByUserId(userInfo.getUserId());
+        // 在登陆的时候计算该用户的所有文件，并计算出大小保存到redis和数据库。
         userSpaceDto.setUseSpace(userspace);
         userSpaceDto.setTotalSpace(userInfo.getTotalSpace());
-        System.out.println("登录时候用户内存：" + userSpaceDto);
-
+        userInfoMapper.ResetUseSpace(userInfo.getUserId(), userspace);
         redisComponent.saveUserSpaceUse(userInfo.getUserId(), userSpaceDto);
         return userDto;
     }

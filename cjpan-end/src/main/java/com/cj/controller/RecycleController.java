@@ -71,6 +71,7 @@ public class RecycleController extends CommonFileController {
         return getSuccessResponseVO(result);
     }
 
+    // 还原文件
     @RequestMapping("/recoverFile")
     @GlobalInterceptor(checkParam = true)
     public ResponseVO recoverFile(HttpSession session, @VerifyParam(require = true) String fileIds) {

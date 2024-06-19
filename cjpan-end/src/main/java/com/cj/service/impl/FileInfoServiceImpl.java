@@ -186,7 +186,9 @@ public class FileInfoServiceImpl implements FileInfoService {
                 fileInfoQuery.setFileMd5(fileMd5);
                 fileInfoQuery.setSimplePage(new SimplePage(0, 1));
                 fileInfoQuery.setStatus(FileStatusEnums.USING.getStatus());
+                fileInfoQuery.setDelFlag(FileDelFlagEnums.USING.getFlag());
                 List<FileInfo> fileInfoList = fileInfoMapper.selectList(fileInfoQuery);
+                redisComponent.saveFileTempSizeRedis(user.getUserId(), fileId, file.getSize());
                 if (!fileInfoList.isEmpty()) {
                     // 秒传
                     FileInfo fileInfo = fileInfoList.get(0);
@@ -246,7 +248,7 @@ public class FileInfoServiceImpl implements FileInfoService {
             fileInfo.setFilePid(filePid);
             fileInfo.setCreateTime(now);
             fileInfo.setLastUpdateTime(now);
-            fileInfo.setFileSize(chunkIndex * 1048576 + file.getSize());
+            fileInfo.setFileSize(chunkIndex * 1048576 + file.getSize()); // 计算文件大小 由之前文件切片数量 * 规定切片大小 + 当前切片大小
             fileInfo.setFileCategory(FileTypeEnums.getFileTypeBySuffix(fileSuffix).getCategory().getCategory()); // 文件范畴
             fileInfo.setFileType(FileTypeEnums.getFileTypeBySuffix(fileSuffix).getType()); // 文件具体类型
             fileInfo.setStatus(FileStatusEnums.TRANSFER.getStatus()); // 转码中文件 即合并
@@ -264,7 +266,6 @@ public class FileInfoServiceImpl implements FileInfoService {
                 public void afterCommit() {
                     fileInfoService.transferFile(fileInfo.getFileId(), user);
                 }
-
             });
             return resultDto;
         } catch (BusinessException e) {
@@ -535,6 +536,7 @@ public class FileInfoServiceImpl implements FileInfoService {
         FileInfo fileInfo = new FileInfo();
         fileInfo.setDelFlag(FileDelFlagEnums.USING.getFlag());
         fileInfo.setFilePid(Constants.ZERO_STR);
+        fileInfo.setRecoveryTime(null);
         fileInfo.setLastUpdateTime(new Date());
         this.fileInfoMapper.updateFileDelFlagBatch(fileInfo, userId, null, delFileIdList, FileDelFlagEnums.RECYCLE.getFlag());
 
@@ -568,20 +570,29 @@ public class FileInfoServiceImpl implements FileInfoService {
                 f.setUserId(userId);
                 f.setFileId(fileId);
                 f.setDelFlag(FileDelFlagEnums.RECYCLE.getFlag());
+                f.setRecoveryTime(new Date());
                 fileInfoMapper.updateFileDelFlagWithOldDelFlag(userId, fileId, f, FileDelFlagEnums.USING.getFlag());
             } else {
                 // 如果是文件
                 String fileId = fileInfo.getFileId();
                 FileInfo delFileInfo = new FileInfo();
-                // 将文件丢尽垃圾桶
+                // 将文件丢入垃圾桶
                 delFileInfo.setUserId(userId);
                 delFileInfo.setFileId(fileId);
                 delFileInfo.setDelFlag(FileDelFlagEnums.RECYCLE.getFlag());
+                delFileInfo.setLastUpdateTime(new Date());
+                delFileInfo.setRecoveryTime(new Date()); // 设置加入回收站时间
                 fileInfoMapper.updateFileDelFlagWithOldDelFlag(userId, fileId, delFileInfo, FileDelFlagEnums.USING.getFlag());
+                // 更新用户空间
+                userInfoMapper.updateUserSpace(userId, -fileInfo.getFileSize(), null);
+                UserSpaceDto userSpaceUse = redisComponent.getUserSpaceUse(userId);
+                userSpaceUse.setUseSpace(userSpaceUse.getUseSpace() - fileInfo.getFileSize());
+                redisComponent.saveUserSpaceUse(userId, userSpaceUse);
             }
         }
     }
 
+    // 根据文件夹id查询所有子文件
     private void findAllSubFolderFileIdList(List<String> fileIdList, String userId, String fileId, Integer delFlag) {
         fileIdList.add(fileId);
         FileInfoQuery query = new FileInfoQuery();
@@ -681,11 +692,12 @@ public class FileInfoServiceImpl implements FileInfoService {
      * @param delSource  是否删除临时文件目录
      */
     private void union(String dirPath, String toFilePath, String fileName, Boolean delSource) {
-        File dir = new File(dirPath);
+        File dir = new File(dirPath + "//" + fileName);
         if (!dir.exists()) {
             throw new BusinessException("目标目录不存在");
         }
         File[] fileList = dir.listFiles(); // 获取所有切片文件
+//        Arrays.sort(fileList, Comparator.comparingInt(o -> Integer.parseInt(o.getName())));
         File targetFile = new File(toFilePath);
         // RandomAccessFile 文件进行随机访问的类 可读 也可以写在文件任意位置
         RandomAccessFile writeFile = null;
@@ -694,7 +706,8 @@ public class FileInfoServiceImpl implements FileInfoService {
             byte[] bytes = new byte[1024 * 10];
             for (int i = 0; i < fileList.length; i++) {
                 int len = -1;
-                File file = new File(dirPath + "/" + fileName +  "/" + i);
+                File file = new File(dirPath + "/" + fileName + "/" + i);
+                logger.info("正在合并文件:{} ", file.getName()); // 日志统计，防止因合并顺序导致的错误
                 RandomAccessFile readFile = null;
                 try {
                     readFile = new RandomAccessFile(file, "r");
@@ -814,5 +827,40 @@ public class FileInfoServiceImpl implements FileInfoService {
         fileInfoQuery.setFilePid(filePid);
         return fileInfoMapper.selectList(fileInfoQuery);
     }
+
+    /**
+     * 查询所有在回收站的文件
+     * @param query
+     * @return
+     */
+    @Override
+    public List<FileInfo> findAllRecycleFile(FileInfoQuery query) {
+        return fileInfoMapper.selectList(query);
+    }
+
+    /**
+     * 删除所有文件
+     * @param deleteIds
+     */
+    @Override
+    public void deleteFileInfoByFileIds(List<String> deleteIds) {
+        fileInfoMapper.delReycleFileBatch(deleteIds, FileDelFlagEnums.RECYCLE.getFlag());
+    }
+
+    /**
+     * 查询所有被彻底删除的文件
+     * @param fileInfoQuery
+     * @return
+     */
+    @Override
+    public List<FileInfo> findAllDelFile(FileInfoQuery fileInfoQuery) {
+        return fileInfoMapper.findAllDelFile(fileInfoQuery);
+    }
+
+    @Override
+    public void deleteFileByFileId(String fileId, Integer flag) {
+        fileInfoMapper.deleteFileById(fileId, flag);
+    }
+
 
 }

@@ -5,10 +5,15 @@ import com.cj.entity.dto.DownloadFileDto;
 import com.cj.entity.dto.SysSettingsDto;
 import com.cj.entity.dto.UserSpaceDto;
 import com.cj.entity.po.FileInfo;
+import com.cj.entity.po.UserInfo;
 import com.cj.entity.query.FileInfoQuery;
+import com.cj.entity.query.UserInfoQuery;
 import com.cj.mappers.FileInfoMapper;
+import com.cj.mappers.UserInfoMapper;
+import com.cj.service.UserInfoService;
 import com.cj.utils.RedisUtils;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import javax.annotation.Resource;
@@ -28,6 +33,8 @@ public class RedisComponent {
 
     @Resource
     private FileInfoMapper<FileInfo, FileInfoQuery> fileInfoMapper;
+    @Autowired
+    private UserInfoMapper<UserInfo, UserInfoQuery> userInfoMapper;
 
     /**
      * 获取临时文件所占空间大小
@@ -103,10 +110,10 @@ public class RedisComponent {
         if (null == spaceDto) {
             spaceDto = new UserSpaceDto();
             Long userspace = fileInfoMapper.selectUserSpaceByUserId(userId);
+
             spaceDto.setUseSpace(userspace);
-            spaceDto.setTotalSpace(getSysSettingsDto().getUserInitUseSpace() * Constants.MB);
-//            System.out.println(spaceDto);
-//            redisUtils.setEx(Constants.REDIS_KEY_USER_SPACE_USE + userId, spaceDto, Constants.REDIS_KEY_EXPIRES_DAY);
+            UserInfo userInfoByUserId = userInfoMapper.selectByUserId(userId);
+            spaceDto.setTotalSpace(userInfoByUserId.getTotalSpace());
             saveUserSpaceUse(userId, spaceDto);
         }
         return spaceDto;

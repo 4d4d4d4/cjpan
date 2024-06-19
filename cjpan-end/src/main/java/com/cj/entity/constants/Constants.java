@@ -30,7 +30,8 @@ public class Constants {
 
     public static final String SESSION_SHARE_KEY = "session_share_key_";
 
-    public static final String FILE_FOLDER_FILE = "/file/";
+    public static final String FILE_FOLDER_FILE = "file/";
+    public static final String FILE_FOLDER_LOGS = "/logs/";
     public static final String STATIC_ASSET_PATH = applicationHome.getDir().getAbsolutePath() + File.separator + "static" + File.separator;
     public static final String FILE_FOLDER_TEMP = "temp/";
 

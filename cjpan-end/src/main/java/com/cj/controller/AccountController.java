@@ -13,9 +13,11 @@ import com.cj.entity.vo.ResponseVO;
 import com.cj.exception.BusinessException;
 import com.cj.service.EmailCodeService;
 import com.cj.service.UserInfoService;
+import com.cj.utils.RedisUtils;
 import com.cj.utils.StringTools;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -51,6 +53,8 @@ public class AccountController extends ABaseController {
 
     private static final String CONTENT_TYPE = "Content-Type";
     private static final String CONTENT_TYPE_VALUE = "application/json;charset=UTF-8";
+    @Autowired
+    private RedisUtils redisUtils;
 
     /**
      * 生成验证码
@@ -144,7 +148,6 @@ public class AccountController extends ABaseController {
                 throw new BusinessException("图片验证码校验不一致");
             }
             SessionWebUserDto userDto = userInfoService.login(email, password);
-//            if(rememberMe)
                 session.setAttribute(Constants.SESSION_KEY, userDto);
             return getSuccessResponseVO(userDto);
         }finally {
@@ -187,6 +190,8 @@ public class AccountController extends ABaseController {
      */
     @RequestMapping("/logout")
     public ResponseVO logout(HttpSession session) {
+        SessionWebUserDto userDto = getUserinfoFromSession(session);
+        redisUtils.remove(Constants.REDIS_KEY_USER_SPACE_USE + userDto.getUserId()); // 清除用户缓存
         // 无效此会话
         session.invalidate();
         return getSuccessResponseVO(null);

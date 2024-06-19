@@ -159,7 +159,7 @@
                 <![CDATA[ and  recovery_time< date_sub(str_to_date(#{query.recoveryTimeEnd},'%Y-%m-%d'),interval -1 day) ]]>
             </if>
             <if test="query.queryExpire!=null and query.queryExpire">
-                <![CDATA[  and recovery_time< date_sub(now(),interval 10 day)]]>
+                <![CDATA[  and recovery_time< date_sub(now(),interval 30 day)]]>
             </if>
         </where>
     </sql>
@@ -654,6 +654,9 @@
             <if test="bean.delFlag != null">
                 del_flag = #{bean.delFlag},
             </if>
+            <if test="bean.recoveryTime != null">
+                recovery_time = #{bean.recoveryTime}
+            </if>
         </set>
         where file_id=#{fileId} and user_id=#{userId} and del_flag = #{oldFlag}
     </update>
@@ -696,9 +699,7 @@
             <if test="bean.status != null">
                 status = #{bean.status},
             </if>
-            <if test="bean.recoveryTime != null">
                 recovery_time = #{bean.recoveryTime},
-            </if>
             <if test="bean.delFlag != null">
                 del_flag = #{bean.delFlag},
             </if>
@@ -754,10 +755,34 @@
             and del_flag = #{oldDelFlag}
         </if>
     </delete>
+    <delete id="delReycleFileBatch">
+        update file_info set del_flag = 0, last_update_time = now()
+        <where>
+            <if test="null!=ids and ids.size > 0">
+                and file_id in (<foreach collection="ids" separator="," item="id">#{id}</foreach>)
+                <if test="null != oldStatus">
+                    and del_flag = #{oldStatus}
+                </if>
+                <if test="true">
+                    <![CDATA[  and recovery_time< date_sub(now(),interval 30 day)]]>
+                </if>
+            </if>
+
+        </where>
+    </delete>
 
     <select id="selectUseSpace" resultType="java.lang.Long">
         select IFNULL(sum(file_size), 0)
         from file_info
         where user_id = #{userId}
+    </select>
+    <select id="findAllDelFile" resultMap="base_result_map">
+        select
+            <include refid="base_column_list"/>
+            from file_info
+            where del_flag = #{query.delFlag}
+              <if test="true">
+                  <![CDATA[  and last_update_time< date_sub(now(),interval 1 day)]]>
+              </if>
     </select>
 </mapper>

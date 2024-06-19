@@ -2,6 +2,7 @@ package com.cj.service;
 
 import com.cj.entity.dto.SessionWebUserDto;
 import com.cj.entity.dto.UploadResultDto;
+import com.cj.entity.enums.FileDelFlagEnums;
 import com.cj.entity.po.FileInfo;
 import com.cj.entity.po.UserInfo;
 import com.cj.entity.query.FileInfoQuery;
@@ -94,4 +95,11 @@ public interface FileInfoService {
 
     List<FileInfo> getFileInfoByUserIdAndPid(String userId, String filePid);
 
+    List<FileInfo> findAllRecycleFile(FileInfoQuery fileInfoQuery);
+
+    void deleteFileInfoByFileIds(List<String> deleteIds);
+
+    List<FileInfo> findAllDelFile(FileInfoQuery fileInfoQuery);
+
+    void deleteFileByFileId(String fileId, Integer flag);
 }
